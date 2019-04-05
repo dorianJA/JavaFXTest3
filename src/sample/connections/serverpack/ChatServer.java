@@ -5,6 +5,7 @@ import sample.Person;
 import sample.connections.networkpack.TCPConnection;
 import sample.connections.networkpack.TCPConnectionListener;
 
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -49,7 +50,6 @@ public class ChatServer implements TCPConnectionListener {
     public synchronized void onException(TCPConnection tcpConnection, Exception e) {
         System.out.println("TCPConnection exception: "+ e);
     }
-
 
 
 

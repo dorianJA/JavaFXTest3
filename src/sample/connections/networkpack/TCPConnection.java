@@ -2,8 +2,7 @@ package sample.connections.networkpack;
 
 
 
-import javafx.scene.control.ListView;
-import sample.Person;
+
 
 
 import java.io.*;
@@ -76,6 +75,8 @@ public class TCPConnection {
 
     @Override
     public String toString() {
-        return "TCPConnection: " + socket.getInetAddress()+ ": "+ socket.getPort()+" "+socket.getLocalPort();
+        return "TCPConnection: " + socket.getInetAddress()+ ": "+ socket.getPort();
     }
+
+
 }

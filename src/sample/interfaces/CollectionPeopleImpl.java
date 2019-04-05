@@ -24,21 +24,22 @@ public class CollectionPeopleImpl implements CollectionPeople {
     }
 
     public void fillPeopleData(){
-        listPeople.add(new Person("Maxim Alenchev",97,84,72,"bra",10,1,3));
-        listPeople.add(new Person("Andrew Korolchak",90,90,85,"rus",89,0,0));
-        listPeople.add(new Person("Anton Nemolochnov",80,90,90,"rus",8,1,3));
-        listPeople.add(new Person("Igor Matevosyan",80,85,85,"rus",11,1,2));
-        listPeople.add(new Person("Denis Pavlov",90,94,80,"rus",7,1,2));
-        listPeople.add(new Person("Sergej Karpov",54,67,50,"rus",5,1,0));
-        listPeople.add(new Person("Nikolaj Karpov",77,79,82,"rus",1,1,2));
-        listPeople.add(new Person("Gena Bashkirov",76,85,89,"rus",13,1,1));
-        listPeople.add(new Person("Iliya Krukov",70,77,76,"rus",14,0,0));
-        listPeople.add(new Person("Igor Vishnyakov",54,64,60,"rus",15,1,0));
-        listPeople.add(new Person("Evgenij Andreev",79,84,83,"rus",69,1,1));
-        listPeople.add(new Person("Alex Tsaregorodtsev",92,89,85,"rus",16,1,2));
-        listPeople.add(new Person("Max Liumens",79,78,78,"neth",18,1,1));
-        listPeople.add(new Person("Denis Salatov",52,56,62,"rus",19,1,0));
-        listPeople.add(new Person("Alex Fomichev",91,81,84,"rus",20,0,0));
+        listPeople.add(new Person("Аленчев Максим",96,87,70,"bra",10,2,7));
+        listPeople.add(new Person("Андреев Евгений",65,65,60,"rus",69,1,2));
+        listPeople.add(new Person("Немолочнов Антон",71,87,82,"rus",8,1,4));
+        listPeople.add(new Person("Матевосян Игорь",70,80,79,"rus",11,2,4));
+        listPeople.add(new Person("Павлов Денис",80,92,73,"rus",7,2,5));
+        listPeople.add(new Person("Карпов Сергей",37,30,50,"rus",5,1,0));
+        listPeople.add(new Person("Карпов Николай",67,62,73,"rus",1,2,5));
+        listPeople.add(new Person("Башкиров Геннадий",60,53,75,"rus",36,1,1));
+        listPeople.add(new Person("Крюков Илья",53,59,67,"rus",14,2,3));
+        listPeople.add(new Person("Вишняков Игорь",33,34,47,"rus",15,1,0));
+        listPeople.add(new Person("Царегородцев Алексей ",89,90,86,"rus",16,1,3));
+        listPeople.add(new Person("Льюменс Макс",73,72,66,"neth",18,2,4));
+        listPeople.add(new Person("Салатов Денис",30,30,51,"rus",19,2,0));
+        listPeople.add(new Person("Фомичев Алексей",77,70,73,"rus",20,2,3));
+        listPeople.add(new Person("Корольчак Андрей",86,92,76,"rus",89,1,2));
+        listPeople.add(new Person("Титаренко Олег",56,54,74,"rus",21,0,0));
     }
 
     public ObservableList<Person> high(){

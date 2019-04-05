@@ -2,7 +2,6 @@ package sample.controllers;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -10,12 +9,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import sample.Person;
 import sample.connections.networkpack.TCPConnection;
 import sample.connections.networkpack.TCPConnectionListener;
@@ -23,7 +21,7 @@ import sample.interfaces.CollectionPeopleImpl;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Iterator;
+
 
 public class Controller implements TCPConnectionListener {
 
@@ -42,7 +40,7 @@ public class Controller implements TCPConnectionListener {
     @FXML
     private TextField textName;
 
-    private static final String IP_ADDR = "127.0.0.1";
+    private static final String IP_ADDR = "10.10.0.147";
     private static final int PORT = 8189;
 
     private TCPConnection connection;
@@ -52,11 +50,9 @@ public class Controller implements TCPConnectionListener {
 
     @FXML
     private ListView<Person> listView;
-    @FXML
-    private ListView<TCPConnection> playerReady;
 
     @FXML
-    private  ListView<Person>  teamOneView;
+    private ListView<Person>  teamOneView;
 
     @FXML
     private  ListView<Person> teamTwoView;
@@ -71,24 +67,86 @@ public class Controller implements TCPConnectionListener {
     private Label teamTwoAvr;
     @FXML
     private Label teamThreeAvr;
+    @FXML
+    private ListView<Person> playerReady;
+    @FXML
+    private Button buttonReset;
+    @FXML
+    private TextArea textAreaAllTeam;
+
+    @FXML
+    private Button buttonPlus;
+
+    @FXML
+    private ImageView imagePlus;
+    @FXML
+    private ImageView imageMinus;
+    @FXML
+    private ImageView imageStat;
 
 
-    public void setTeamOneView(ListView<Person> teamOneView) {
-        this.teamOneView = teamOneView;
-    }
 
-    public ListView<Person> getTeamOneView() {
-        return teamOneView;
-    }
+
 
     @FXML
     private void initialize(){
         textArea.setEditable(false);
         textArea.setWrapText(true);
+        textName.setText("Unknown");
+        teamOneView.setVisible(false);
+        teamTwoView.setVisible(false);
+        teamThreeView.setVisible(false);
+
+
+
+
+
+        textAreaAllTeam.setEditable(false);
+        textAreaAllTeam.setWrapText(true);
+
+
+        imagePlus.setOnMouseClicked(event -> {
+            if (listView.getSelectionModel().getSelectedItem() != null && !listView.getSelectionModel().getSelectedItem().isReady()) {  // перенести из одного листа в другой
+                listView.getSelectionModel().getSelectedItem().setReady(true);
+                playerReady.getItems().add(listView.getSelectionModel().getSelectedItem());
+            }
+        });
+
+        imageMinus.setOnMouseClicked(event -> {
+            if(playerReady.getSelectionModel().getSelectedItem() !=null) {
+                playerReady.getSelectionModel().getSelectedItem().setReady(false);
+                playerReady.getItems().remove(playerReady.getSelectionModel().getSelectedItem());
+            }
+        });
+        imageStat.setOnMouseClicked(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample/forfxml/statistics.fxml"));
+                Parent root = loader.load();
+                Stage stage = new Stage();
+                stage.setTitle("Statistics");
+                StatisticController connectController = loader.getController();
+                connectController.stat(listView);
+                stage.setMinWidth(150);
+                stage.setMinHeight(300);
+                stage.setResizable(false);
+                stage.setScene(new Scene(root));
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.show();
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+        });
+
+
+        balanceButton.setVisible(false);
+        buttonReset.setVisible(false);
+
+
+
+
 
         try {
             connection = new TCPConnection(this,IP_ADDR,PORT);
-
 
         } catch (IOException e) {
             printMsg("Connection exception: " +e);
@@ -99,7 +157,14 @@ public class Controller implements TCPConnectionListener {
                 if(msg.equals("")) return;
                 sendTextField.setText(null);
                 connection.sendString(textName.getText()+ ": " + msg);
+                if(msg.equals("!b")){
+                    allP();
+                    connection.sendString(teamOneView.getItems()+"\n"+teamTwoView.getItems()+"\n"+teamThreeView.getItems());
 
+                }
+//                else if(msg.equals("!c")){
+//                    reset();
+//                }
             }
         });
 
@@ -114,7 +179,7 @@ public class Controller implements TCPConnectionListener {
             public void handle(MouseEvent e){
                 try {
                     if(e.getClickCount() == 2 && listView.getSelectionModel().getSelectedItem()!=null) {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("../forfxml/attribute.fxml"));
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample/forfxml/attribute.fxml"));
                         Parent root = loader.load();
                         AttrController attrController = loader.getController();
                         attrController.attributes(listView.getSelectionModel().getSelectedItem().getName(),
@@ -153,54 +218,68 @@ public class Controller implements TCPConnectionListener {
             public void run() {
                 textArea.appendText(msg+"\n");
                 textArea.positionCaret(textArea.getLength());
-                if (msg.equals("Max: !b")) {
-                    allP();
-                }
-                else if (msg.equals("Max: !c")) {
+                String[] str = msg.split(":");
+                if(str[1].equals(" !c")){
                     reset();
                 }
+
             }
         });
     }
-
-    public synchronized void refreshAll(){
+    private synchronized void printAll(String msg){
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-               allP();
+
+                textAreaAllTeam.appendText(msg+"\n");
+
             }
         });
     }
 
 
-    public void statistics(){
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("../forfxml/statistics.fxml"));
-            Parent root = loader.load();
-            Stage stage = new Stage();
-            stage.setTitle("Statistics");
-            StatisticController connectController = loader.getController();
-            connectController.stat(listView);
-            stage.setMinWidth(150);
-            stage.setMinHeight(300);
-            stage.setResizable(false);
-            stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.show();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-    }
+
+//    public void plus() {
+//        if (listView.getSelectionModel().getSelectedItem() != null && !listView.getSelectionModel().getSelectedItem().isReady()) {  // перенести из одного листа в другой
+//            listView.getSelectionModel().getSelectedItem().setReady(true);
+//            playerReady.getItems().add(listView.getSelectionModel().getSelectedItem());
+//        }
+//    }
+//
+//    public void minus(){
+//        if(playerReady.getSelectionModel().getSelectedItem() !=null) {
+//            playerReady.getSelectionModel().getSelectedItem().setReady(false);
+//            playerReady.getItems().remove(playerReady.getSelectionModel().getSelectedItem());
+//        }
+//    }
+
+
+//    public void statistics(){
+//        try {
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample/forfxml/statistics.fxml"));
+//            Parent root = loader.load();
+//            Stage stage = new Stage();
+//            stage.setTitle("Statistics");
+//            StatisticController connectController = loader.getController();
+//            connectController.stat(listView);
+//            stage.setMinWidth(150);
+//            stage.setMinHeight(300);
+//            stage.setResizable(false);
+//            stage.setScene(new Scene(root));
+//            stage.initModality(Modality.APPLICATION_MODAL);
+//            stage.show();
+//        }catch (IOException e){
+//            e.printStackTrace();
+//        }
+//    }
 
 
 
 
-    public  void balanced() {
-        allP();
-        balanceButton.setDisable(true);
-
-
-   }
+//    public  void balanced() {
+//        allP();
+//        balanceButton.setDisable(true);
+//   }
 
 
 
@@ -209,6 +288,7 @@ public class Controller implements TCPConnectionListener {
         teamOneView.getItems().clear();
         teamTwoView.getItems().clear();
         teamThreeView.getItems().clear();
+        textAreaAllTeam.clear();
         //listView.getItems().clear();
         //people.fillPeopleData();
         //listView.setItems(people.getListPeople());
@@ -221,28 +301,35 @@ public class Controller implements TCPConnectionListener {
     }
 
 
-    public void allP(){
-       allPlayer = people.all();
+    public void allP() {
+        allPlayer = people.ready();
         Collections.shuffle(allPlayer);
-        for(int i = 0; i < allPlayer.size();){
+        for (int i = 0; i < allPlayer.size(); ) {
             teamOneView.getItems().add(allPlayer.get(i));
             ++i;
-            if(i < allPlayer.size()){
+            if (i < allPlayer.size()) {
                 teamTwoView.getItems().add(allPlayer.get(i));
                 ++i;
             }
-            if(i < allPlayer.size() && allPlayer.size() > 10){
+            if (i < allPlayer.size() && allPlayer.size() > 11) {
                 teamThreeView.getItems().add(allPlayer.get(i));
                 ++i;
             }
-        }
-        if(!checked()){
-            reset();
-            allP();
-        }
 
+        }
+        if (!checked()) {
+            try {
+                reset();
+                allP();
+            } catch (StackOverflowError e) {
+                System.out.println("StackOverFlow");
+                reset();
+            }
 
+        }
     }
+
+
     public boolean checked(){
         int avrTeamOne = 0;
         int avrTeamTwo = 0;
@@ -251,18 +338,20 @@ public class Controller implements TCPConnectionListener {
             avrTeamOne+=teamOneView.getItems().get(i).avr();
         }
         System.out.println("Team one: "+avrTeamOne);
-        teamOneAvr.setText(String.valueOf(avrTeamOne));
+//        teamOneAvr.setText(String.valueOf(avrTeamOne));
         for(int i = 0; i < teamTwoView.getItems().size();i++){
             avrTeamTwo+=teamTwoView.getItems().get(i).avr();
+
         }
         System.out.println("Team two: "+avrTeamTwo);
-        teamTwoAvr.setText(String.valueOf(avrTeamTwo));
+//        teamTwoAvr.setText(String.valueOf(avrTeamTwo));
         for(int i = 0; i < teamThreeView.getItems().size();i++){
             avrTeamThree+=teamThreeView.getItems().get(i).avr();
+
         }
 
         System.out.println("Team three: " + avrTeamThree);
-        teamThreeAvr.setText(String.valueOf(avrTeamThree));
+//        teamThreeAvr.setText(String.valueOf(avrTeamThree));
 
         if(avrTeamOne -  avrTeamTwo > 6 || (allPlayer.size() > 11 && avrTeamOne -  avrTeamThree > 6)){
             return false;
@@ -271,7 +360,7 @@ public class Controller implements TCPConnectionListener {
         else if(avrTeamTwo - avrTeamOne > 6 ||  (allPlayer.size() > 11 && avrTeamTwo - avrTeamThree > 6)){
             return false;
         }
-        else if( avrTeamThree -  avrTeamOne > 6 || avrTeamThree - avrTeamTwo > 6){
+        else if(avrTeamThree -  avrTeamOne > 6 || avrTeamThree - avrTeamTwo > 6){
             return false;
         }
         else {
@@ -290,7 +379,13 @@ public class Controller implements TCPConnectionListener {
 
     @Override
     public void onRecieveString(TCPConnection tcpConnection, String value) {
-        printMsg(value);
+        if(value.startsWith("[") || value.startsWith("]") || value.startsWith(",")){
+            printAll(value);
+        }
+        else {
+            printMsg(value);
+        }
+
     }
 
     @Override
